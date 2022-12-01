@@ -1,8 +1,14 @@
 import React from "react";
 import "./App.css";
+import { BrowseSection, Header } from "./components";
 
-function App() {
-  return <div className="App">Implement</div>;
-}
+const App = () => {
+  return (
+    <div className="app">
+      <Header />
+      <BrowseSection />
+    </div>
+  );
+};
 
 export default App;
