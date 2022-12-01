@@ -19,16 +19,22 @@ const BrowseSection = () => {
   };
 
   const handleSubmit = () => {
-    // const emails = [];
-    // selectedFiles.forEach((file) => {
-    //   // process
-    // });
+    const emails: string[] = [];
+    selectedFiles.forEach((file) => {
+      file.text().then((data) => {
+        data.split(/\r?\n/).forEach((line) => {
+          line.trim().length > 0 && emails.push(line);
+        });
+      });
+    });
+    // Send to be
+    console.log(emails);
   };
 
   return (
     <div className="BrowseSection">
       <label htmlFor="files" className="browse_button">
-        Select Files
+        {"Select Files"}
       </label>
       <input
         id="files"
@@ -44,7 +50,7 @@ const BrowseSection = () => {
         ))}
       </ul>
       <button onClick={handleSubmit} className="browse_button">
-        Send
+        {"Send"}
       </button>
     </div>
   );
