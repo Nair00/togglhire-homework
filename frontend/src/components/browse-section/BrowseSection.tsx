@@ -1,24 +1,26 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useState } from "react";
 import "./BrowseSection.css";
 
 const BrowseSection = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const handleBrowseClick: React.ChangeEventHandler<HTMLInputElement> = (
-    event
-  ) => {
-    if (!event.target.files) {
-      return;
-    }
-    const files = [];
-    for (let i = 0; i < (event.target.files.length ?? 0); i++) {
-      files.push(event.target.files[i]);
-    }
-    setSelectedFiles(files);
-  };
+  const handleBrowseClick: React.ChangeEventHandler<HTMLInputElement> =
+    useCallback(
+      (event) => {
+        if (!event.target.files) {
+          return;
+        }
+        const files = [];
+        for (let i = 0; i < (event.target.files.length ?? 0); i++) {
+          files.push(event.target.files[i]);
+        }
+        setSelectedFiles(files);
+      },
+      [setSelectedFiles]
+    );
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     const emails: string[] = [];
     selectedFiles.forEach((file) => {
       file.text().then((data) => {
@@ -29,7 +31,17 @@ const BrowseSection = () => {
     });
     // Send to be
     console.log(emails);
-  };
+  }, [selectedFiles]);
+
+  const renderSelectedFiles = useCallback(() => {
+    return (
+      <ul>
+        {selectedFiles.map((file, index) => (
+          <li key={`${index}-${file.name}`}>{file.name}</li>
+        ))}
+      </ul>
+    );
+  }, [selectedFiles]);
 
   return (
     <div className="BrowseSection">
@@ -44,11 +56,7 @@ const BrowseSection = () => {
         onChange={handleBrowseClick}
         className="browse_files_input"
       />
-      <ul>
-        {selectedFiles.map((file, index) => (
-          <li key={`${index}-${file.name}`}>{file.name}</li>
-        ))}
-      </ul>
+      {renderSelectedFiles()}
       <button onClick={handleSubmit} className="browse_button">
         {"Send"}
       </button>
