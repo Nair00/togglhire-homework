@@ -1,6 +1,7 @@
 .Header{
   flex:1;
-  padding:8rem;
+  padding-top:8rem;
+  padding-bottom:8rem;
 }
 
 .header_text{
