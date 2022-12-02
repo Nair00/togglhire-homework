@@ -1,9 +1,38 @@
 import React, { useCallback } from "react";
 import { useState } from "react";
+import { postSend } from "../../api/Api";
 import "./BrowseSection.css";
+import { useFileReader } from "./hooks/useFileReader";
 
 const BrowseSection = () => {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [emails, setEmails] = useState<string[]>([]);
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  // const [selectedFiles, setSelectedFiles] = useState
+
+  const { readFiles } = useFileReader({});
+
+  const loadEmails = useCallback(
+    (files: File[]) => {
+      const newEmails: string[] = [];
+
+      readFiles(files)
+        .then((response) => {
+          response.forEach((data) => {
+            data.split(/\r?\n/).forEach((line) => {
+              line.trim().length > 0 && newEmails.push(line);
+            });
+          });
+          setEmails(newEmails);
+        })
+        .catch(() => {
+          console.log("There was a problem while reading the files!");
+        })
+        .finally(() => {
+          setIsDisabled(false);
+        });
+    },
+    [setIsDisabled, readFiles, setEmails]
+  );
 
   const handleBrowseClick: React.ChangeEventHandler<HTMLInputElement> =
     useCallback(
@@ -11,37 +40,44 @@ const BrowseSection = () => {
         if (!event.target.files) {
           return;
         }
+        setIsDisabled(true);
         const files = [];
         for (let i = 0; i < (event.target.files.length ?? 0); i++) {
           files.push(event.target.files[i]);
         }
-        setSelectedFiles(files);
+        loadEmails(files);
       },
-      [setSelectedFiles]
+      [loadEmails]
     );
 
   const handleSubmit = useCallback(() => {
-    const emails: string[] = [];
-    selectedFiles.forEach((file) => {
-      file.text().then((data) => {
-        data.split(/\r?\n/).forEach((line) => {
-          line.trim().length > 0 && emails.push(line);
-        });
+    postSend(emails)
+      .then(async (r: Response) => {
+        const isJson = r.headers
+          .get("content-type")
+          ?.includes("application/json");
+        if (isJson) {
+          r.json().then((data) => {
+            console.log("S", data);
+          });
+        } else {
+          console.log("error", r);
+        }
+      })
+      .catch((e: any) => {
+        console.log("E", e);
       });
-    });
-    // Send to be
-    console.log(emails);
-  }, [selectedFiles]);
+  }, [emails]);
 
   const renderSelectedFiles = useCallback(() => {
     return (
       <ul>
-        {selectedFiles.map((file, index) => (
+        {/* {selectedFiles.map((file, index) => (
           <li key={`${index}-${file.name}`}>{file.name}</li>
-        ))}
+        ))} */}
       </ul>
     );
-  }, [selectedFiles]);
+  }, []);
 
   return (
     <div className="BrowseSection">
@@ -55,9 +91,14 @@ const BrowseSection = () => {
         accept={"text/txt"}
         onChange={handleBrowseClick}
         className="browse_files_input"
+        disabled={isDisabled}
       />
       {renderSelectedFiles()}
-      <button onClick={handleSubmit} className="browse_button">
+      <button
+        onClick={handleSubmit}
+        className="browse_button"
+        disabled={isDisabled}
+      >
         {"Send"}
       </button>
     </div>
