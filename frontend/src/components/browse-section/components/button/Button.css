@@ -1,4 +1,4 @@
-.buttom{
+.button{
   margin: 4px;
   padding: 8px;
   border-radius: 8px;
@@ -10,10 +10,10 @@
   font-weight: 400;
 }
 
-.buttom_active {
+.button_active {
   background-color: blue;
 }
 
-.buttom_disabled {
+.button_disabled {
   background-color: var(--color-gray);
 }
