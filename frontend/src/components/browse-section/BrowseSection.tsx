@@ -1,13 +1,17 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { useState } from "react";
 import { postSend } from "../../api/Api";
 import "./BrowseSection.css";
+import { Button } from "./components/button/Button";
 import { useFileReader } from "./hooks/useFileReader";
 
-const BrowseSection = () => {
+interface BrowseSectionProps {}
+
+const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [emails, setEmails] = useState<string[]>([]);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
-  // const [selectedFiles, setSelectedFiles] = useState
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { readFiles } = useFileReader({});
 
@@ -69,22 +73,17 @@ const BrowseSection = () => {
       });
   }, [emails]);
 
-  const renderSelectedFiles = useCallback(() => {
-    return (
-      <ul>
-        {/* {selectedFiles.map((file, index) => (
-          <li key={`${index}-${file.name}`}>{file.name}</li>
-        ))} */}
-      </ul>
-    );
-  }, []);
-
   return (
     <div className="BrowseSection">
-      <label htmlFor="files" className="browse_button">
-        {"Select Files"}
-      </label>
+      <Button
+        onClick={() => {
+          inputRef.current?.click();
+        }}
+        isDisabled={isDisabled}
+        title={"Select Files"}
+      />
       <input
+        ref={inputRef}
         id="files"
         type="file"
         multiple
@@ -93,14 +92,7 @@ const BrowseSection = () => {
         className="browse_files_input"
         disabled={isDisabled}
       />
-      {renderSelectedFiles()}
-      <button
-        onClick={handleSubmit}
-        className="browse_button"
-        disabled={isDisabled}
-      >
-        {"Send"}
-      </button>
+      <Button onClick={handleSubmit} isDisabled={true} title={"Send"} />
     </div>
   );
 };
