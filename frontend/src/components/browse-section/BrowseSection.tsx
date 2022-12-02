@@ -16,10 +16,25 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const candidatesEmails = useRef<string[]>([]);
 
-  const { readFiles } = useFileReader({});
+  const onFileReadFailure = (index: number) => {
+    setFileStates((prev) => {
+      prev[index].state = "failed";
+      return prev;
+    });
+  };
+
+  const onFileReadSuccess = (index: number) => {
+    setFileStates((prev) => {
+      prev[index].state = "success";
+      return prev;
+    });
+  };
+
+  const { readFiles } = useFileReader({ onFileReadSuccess, onFileReadFailure });
 
   const loadEmails = useCallback(
     (files: File[]) => {
+      candidatesEmails.current = [];
       const newEmails: string[] = [];
 
       readFiles(files)
@@ -59,7 +74,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
           );
         }
       },
-      [loadEmails]
+      [loadEmails, setFileStates]
     );
 
   const handleSubmit = useCallback(() => {
