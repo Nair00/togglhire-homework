@@ -1,4 +1,3 @@
-import React from "react";
 import "./App.css";
 import { BrowseSection, Header } from "./components";
 

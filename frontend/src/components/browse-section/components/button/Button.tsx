@@ -23,7 +23,6 @@ export const Button: React.FC<PropsWithChildren<ButtonProps>> = ({
   onClick,
   isDisabled,
   title,
-  children,
 }) => {
   return (
     <button
@@ -31,7 +30,6 @@ export const Button: React.FC<PropsWithChildren<ButtonProps>> = ({
       className={`button ${isDisabled ? "button_disabled" : "button_active"}`}
     >
       {title}
-      {children}
     </button>
   );
 };

@@ -1,17 +1,20 @@
 import React, { useCallback, useRef } from "react";
 import { useState } from "react";
-import { postSend } from "../../api/Api";
-import "./BrowseSection.css";
 import { Button } from "./components/button/Button";
 import { useFileReader } from "./hooks/useFileReader";
+import FilesPreview from "./components/files-preview/FilesPreview";
+import { FileState } from "src/types";
+import "./BrowseSection.css";
+import { postSendEmails } from "src/api";
 
 interface BrowseSectionProps {}
 
 const BrowseSection: React.FC<BrowseSectionProps> = () => {
-  const [emails, setEmails] = useState<string[]>([]);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [fileStates, setFileStates] = useState<FileState[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const candidatesEmails = useRef<string[]>([]);
 
   const { readFiles } = useFileReader({});
 
@@ -26,7 +29,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
               line.trim().length > 0 && newEmails.push(line);
             });
           });
-          setEmails(newEmails);
+          candidatesEmails.current.push(...newEmails);
         })
         .catch(() => {
           console.log("There was a problem while reading the files!");
@@ -35,27 +38,32 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
           setIsDisabled(false);
         });
     },
-    [setIsDisabled, readFiles, setEmails]
+    [readFiles]
   );
 
   const handleBrowseClick: React.ChangeEventHandler<HTMLInputElement> =
     useCallback(
       (event) => {
-        if (!event.target.files) {
-          return;
+        if (event.target.files) {
+          setIsDisabled(true);
+
+          const files = [];
+          for (let i = 0; i < (event.target.files.length ?? 0); i++) {
+            files.push(event.target.files[i]);
+          }
+          loadEmails(files);
+          setFileStates(
+            files.map((file) => {
+              return { name: file.name, state: "loading" };
+            })
+          );
         }
-        setIsDisabled(true);
-        const files = [];
-        for (let i = 0; i < (event.target.files.length ?? 0); i++) {
-          files.push(event.target.files[i]);
-        }
-        loadEmails(files);
       },
       [loadEmails]
     );
 
   const handleSubmit = useCallback(() => {
-    postSend(emails)
+    postSendEmails(candidatesEmails.current)
       .then(async (r: Response) => {
         const isJson = r.headers
           .get("content-type")
@@ -71,7 +79,9 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       .catch((e: any) => {
         console.log("E", e);
       });
-  }, [emails]);
+  }, []);
+
+  const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
 
   return (
     <div className="BrowseSection">
@@ -92,7 +102,12 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         className="browse_files_input"
         disabled={isDisabled}
       />
-      <Button onClick={handleSubmit} isDisabled={true} title={"Send"} />
+      <FilesPreview files={fileStates} />
+      <Button
+        onClick={handleSubmit}
+        isDisabled={isSendDisabled}
+        title={"Send"}
+      />
     </div>
   );
 };
