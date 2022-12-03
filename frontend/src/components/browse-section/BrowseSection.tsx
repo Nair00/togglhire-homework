@@ -26,7 +26,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
 
   // The data that is to be sent to the api is held in a ref since it's not rendered anywhere
-  // Held as an array of arrays, each array representing a file. This way it's easy to remove files
+  // Held as an array of arrays, each array representing a file. This way it's easy to
+  // remove files from the list with loaded emails
   const candidatesEmails = useRef<string[][]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);

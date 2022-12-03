@@ -26,6 +26,7 @@
   font-size: 1em;
   cursor: pointer;
 }
+
 /* checkbox aspect */
 .duplicates_checkbox:not(:checked) + label:before,
 .duplicates_checkbox:checked + label:before {

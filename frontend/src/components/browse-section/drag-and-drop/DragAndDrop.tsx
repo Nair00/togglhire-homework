@@ -12,6 +12,10 @@ interface DragAndDropProps {
    * Eg: clearing input
    */
   refOverride?: React.RefObject<HTMLInputElement>;
+  /**
+   * A ref for the input's value
+   * Can be used to change the value from outside the component
+   */
   inputValueRef?: React.MutableRefObject<string>;
 }
 
