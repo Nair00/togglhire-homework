@@ -3,7 +3,32 @@
   padding-bottom: 20px;
 }
 
-.files_preview_item {
-  padding-bottom: 4px;
+li.files_preview_item {
+  list-style: none;
   font-weight: 400;
+  padding: 4px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-color: var(--color-black);
+  border-style: solid;
+  color: var(--color-white);
+  background-color: #aaaaaa80;
+  margin: 2px;
+  cursor: pointer;
+}
+
+li.files_preview_item#success {
+  background-color: var(--color-success);
+}
+
+li.files_preview_item#failed {
+  background-color: var(--color-failure);
+}
+
+li.files_preview_item#success:hover {
+  background-color: var(--color-success-hover);
+}
+
+li.files_preview_item#failure:hover {
+  background-color: var(--color-failure-hover);
 }

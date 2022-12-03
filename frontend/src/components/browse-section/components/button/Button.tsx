@@ -14,6 +14,10 @@ interface ButtonProps {
    * Disabled the button
    */
   isDisabled?: boolean;
+  /**
+   * Turns the button in a loading button
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -22,13 +26,17 @@ interface ButtonProps {
 export const Button: React.FC<PropsWithChildren<ButtonProps>> = ({
   onClick,
   isDisabled,
+  isLoading,
   title,
 }) => {
   return (
     <button
-      onClick={!isDisabled ? onClick : undefined}
-      className={`button ${isDisabled ? "button_disabled" : "button_active"}`}
+      onClick={!isDisabled && !isLoading ? onClick : undefined}
+      className={`button ${isDisabled ? "button_disabled" : "button_active"} ${
+        isLoading ? "button_loading" : ""
+      }`}
     >
+      {/* <p className={isLoading ? "button_loading" : ""}>{title}</p> */}
       {title}
     </button>
   );

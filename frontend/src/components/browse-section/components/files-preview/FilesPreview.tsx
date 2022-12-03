@@ -7,16 +7,25 @@ interface FilesPreviewProps {
    * Array containing the states of each file (name and loadingState)
    */
   files: FileState[];
+  /**
+   * Action when an item is clicked
+   */
+  onItemClick?: (index: number) => void;
 }
 
-const FilesPreview: React.FC<FilesPreviewProps> = ({ files }) => {
+const FilesPreview: React.FC<FilesPreviewProps> = ({ files, onItemClick }) => {
   const renderListItem = (file: FileState, index: number) => {
-    const state =
-      file.state === "success" ? "✅" : file.state === "failed" ? "❌" : "";
-
+    const onClick = () => {
+      onItemClick?.(index);
+    };
     return (
-      <li key={`${file.name}-${index}`} className={"files_preview_item"}>
-        {`${file.name} ${state}`}
+      <li
+        key={`${file.name}-${index}`}
+        className={"files_preview_item"}
+        id={file.state}
+        onClick={onClick}
+      >
+        {`${file.name}`}
       </li>
     );
   };

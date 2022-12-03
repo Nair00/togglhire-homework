@@ -8,6 +8,7 @@ import "./BrowseSection.css";
 import { postSendEmails } from "src/api";
 import Alert from "../alert/Alert";
 import { PostSendEmailsResponse } from "src/api/api.types";
+import DragAndDrop from "./drag-and-drop/DragAndDrop";
 
 interface BrowseSectionProps {}
 
@@ -21,24 +22,29 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [fileStates, setFileStates] = useState<FileState[]>([]);
   // The message shown in the alert
   const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
+  // When active only the unique emails will be sent to the api
+  const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
 
   // The data that is to be sent to the api is held in a ref since it's not rendered anywhere
-  const candidatesEmails = useRef<string[]>([]);
+  // Held as an array of arrays, each array representing a file. This way it's easy to
+  // remove files from the list with loaded emails
+  const candidatesEmails = useRef<string[][]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const inputValueRef = useRef<string>();
+  const inputValueRef = useRef<string>("");
 
   // Disables send button
-  const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
+  const isSendDisabled =
+    isDisabled || candidatesEmails.current?.flat().length === 0;
+
+  // The send button is disabled when there are no emails loaded
+  // If the button is disabled with emails loaded, it means that it's in a 'loading' state
+  const isSendButtonLoading =
+    isDisabled && candidatesEmails.current?.flat().length > 0;
 
   // Closes the alert on click
   const closeAlert = () => {
     setAlertMessage(null);
-  };
-
-  // Ties the click of the Browse button to the hidden input element
-  const onBrowseClick = () => {
-    inputRef.current?.click();
   };
 
   const onFileReadFailure = (index: number) => {
@@ -59,7 +65,6 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
   // Cleans all data about the current form
   const cleanForm = () => {
-    inputValueRef.current = "";
     candidatesEmails.current = [];
     setFileStates([]);
   };
@@ -73,9 +78,11 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       readFiles(files)
         .then((response) => {
           response.forEach((data) => {
+            const newEmails: string[] = [];
             data.split(/\r?\n/).forEach((line) => {
-              line.trim().length > 0 && candidatesEmails.current.push(line);
+              line.trim().length > 0 && newEmails.push(line);
             });
+            candidatesEmails.current.push(newEmails);
           });
         })
         .catch(() => {
@@ -92,26 +99,43 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   );
 
   // Disables buttons while loading the new files, every time the input value changes
-  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> =
-    useCallback(
-      (event) => {
-        if (event.target.files) {
-          setIsDisabled(true);
+  const handleInputChange = useCallback(
+    (uploadedFiles: FileList) => {
+      setIsDisabled(true);
 
-          const files = [];
-          for (let i = 0; i < (event.target.files.length ?? 0); i++) {
-            files.push(event.target.files[i]);
-          }
-          loadEmails(files);
-          setFileStates(
-            files.map((file) => {
-              return { name: file.name, state: "loading" };
-            })
-          );
-        }
-      },
-      [loadEmails, setFileStates]
-    );
+      // This is required to keep the value of the input empty, so when files are removed
+      // they can be added again without the input blocking them
+      inputValueRef.current = "";
+
+      const files = [];
+      for (let i = 0; i < (uploadedFiles.length ?? 0); i++) {
+        files.push(uploadedFiles[i]);
+      }
+      loadEmails(files);
+      setFileStates(
+        files.map((file) => {
+          return { name: file.name, state: "loading" };
+        })
+      );
+    },
+    [loadEmails, setFileStates]
+  );
+
+  // Checks/Unchecks the duplicates box
+  const handleDuplicatesCheckbox = useCallback(() => {
+    setRemoveDuplicates((prev) => !prev);
+  }, []);
+
+  // Removes the file with the given index from the loaded files
+  const onFilePreviewItemClick = (indexToRemove: number) => {
+    const removeIndex = (_: any, index: number) => index !== indexToRemove;
+
+    // Updates the value
+    candidatesEmails.current = candidatesEmails.current.filter(removeIndex);
+    setFileStates((prev) => {
+      return prev.filter(removeIndex);
+    });
+  };
 
   // Sends the email addresses
   const handleSubmit = useCallback(() => {
@@ -148,33 +172,47 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       setIsDisabled(false);
     };
 
-    postSendEmails(candidatesEmails.current, onSuccess, onFailure);
-  }, []);
+    if (removeDuplicates) {
+      const uniqueEmailsSet: Set<string> = new Set(
+        candidatesEmails.current.flat()
+      );
+      const uniqueEmails: string[] = [];
+      uniqueEmailsSet.forEach((value) => uniqueEmails.push(value));
+
+      postSendEmails(uniqueEmails, onSuccess, onFailure);
+    } else {
+      postSendEmails(candidatesEmails.current.flat(), onSuccess, onFailure);
+    }
+  }, [removeDuplicates]);
 
   return (
     <div className="browse_section">
-      <Button
-        onClick={onBrowseClick}
-        isDisabled={isDisabled}
-        title={"Select Files"}
+      <DragAndDrop
+        handleFiles={handleInputChange}
+        refOverride={inputRef}
+        inputValueRef={inputValueRef}
       />
-      <input
-        ref={inputRef}
-        id="files"
-        type="file"
-        multiple
-        accept={"text/txt"}
-        onChange={handleInputChange}
-        className="browse_section_files_input"
-        disabled={isDisabled}
-        value={inputValueRef.current}
-      />
-      <FilesPreview files={fileStates} />
-      <Button
-        onClick={handleSubmit}
-        isDisabled={isSendDisabled}
-        title={"Send"}
-      />
+      <FilesPreview files={fileStates} onItemClick={onFilePreviewItemClick} />
+      <div className="browse_section_send_container">
+        <form className="browse_section_duplicates">
+          <input
+            type={"checkbox"}
+            id={"duplicates"}
+            className={"duplicates_checkbox"}
+            onChange={handleDuplicatesCheckbox}
+            checked={removeDuplicates}
+          />
+          <label htmlFor={"duplicates"} className={"duplicates_label"}>
+            {"Remove duplicates"}
+          </label>
+        </form>
+        <Button
+          onClick={handleSubmit}
+          isDisabled={isSendDisabled}
+          isLoading={isSendButtonLoading}
+          title={"Send"}
+        />
+      </div>
       {alertMessage && (
         <Alert
           message={alertMessage.message}
