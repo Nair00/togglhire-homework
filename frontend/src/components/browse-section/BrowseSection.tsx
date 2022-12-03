@@ -7,6 +7,7 @@ import { AlertMessage, FileState } from "src/types";
 import "./BrowseSection.css";
 import { postSendEmails } from "src/api";
 import Alert from "../alert/Alert";
+import { PostSendEmailsResponse } from "src/api/api.types";
 
 interface BrowseSectionProps {}
 
@@ -66,7 +67,10 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
           candidatesEmails.current.push(...newEmails);
         })
         .catch(() => {
-          console.log("There was a problem while reading the files!");
+          setAlertMessage({
+            message: "There was a problem while reading the files!",
+            type: "error",
+          });
         })
         .finally(() => {
           setIsDisabled(false);
@@ -97,34 +101,30 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     );
 
   const handleSubmit = useCallback(() => {
-    postSendEmails(candidatesEmails.current)
-      .then(async (r: Response) => {
-        if (r.ok) {
-          setAlertMessage({
-            message: "All emails have been sent!",
-            type: "success",
-          });
-          cleanForm();
-        } else {
-          r.json().then((data) => {
-            const message =
-              data.error === "send_failure"
-                ? "Failed to send emails to the following addresses: " +
-                  data.emails
-                : (data.error = "invalid_email_address"
-                    ? "Some of the emails were not valid: " + data.emails
-                    : "Something went wrong!");
-
-            setAlertMessage({
-              message: message,
-              type: "error",
-            });
-          });
-        }
-      })
-      .catch((e: any) => {
-        console.log("E", e);
+    const onSuccess = () => {
+      setAlertMessage({
+        message: "All emails have been sent!",
+        type: "success",
       });
+      cleanForm();
+    };
+
+    const onFailure = (response?: PostSendEmailsResponse) => {
+      const message =
+        response?.error === "send_failure"
+          ? "Failed to send emails to the following addresses: " +
+            response?.emails
+          : response?.error === "invalid_email_address"
+          ? "Some of the emails were not valid: " + response?.emails
+          : "Something went wrong!";
+
+      setAlertMessage({
+        message: message,
+        type: "error",
+      });
+    };
+
+    postSendEmails(candidatesEmails.current, onSuccess, onFailure);
   }, []);
 
   return (
