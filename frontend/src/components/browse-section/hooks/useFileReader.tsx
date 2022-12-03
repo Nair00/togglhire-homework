@@ -7,8 +7,8 @@ export const useFileReader = ({
   onFileReadFailure,
 }: {
   /**
-   * Called when a file is read with success, passing the index in the
-   * original array as prop
+   * Called when a file has been read with success, passing the index
+   * in the original array as prop
    */
   onFileReadSuccess?: (index: number) => void;
   /**

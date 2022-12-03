@@ -22,9 +22,11 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   // The message shown in the alert
   const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
 
+  // The data that is to be sent to the api is held in a ref since it's not rendered anywhere
+  const candidatesEmails = useRef<string[]>([]);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const inputValueRef = useRef<string>();
-  const candidatesEmails = useRef<string[]>([]);
 
   // Disables send button
   const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;

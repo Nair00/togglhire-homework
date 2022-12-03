@@ -6,7 +6,7 @@ import { postRequest } from "./apiRequest";
  * @param emails the array of emails
  * @param onSuccess called on success
  * @param onFailure called when an error occurs. Receives params when the errors
- * are handled
+ * are handled by the api
  */
 export const postSendEmails = (
   emails: string[],
@@ -20,11 +20,12 @@ export const postSendEmails = (
   };
 
   postRequest<PostSendEmailsPayload>({ url, data })
-    .then(async (r: Response) => {
-      if (r.ok) {
+    .then(async (response: Response) => {
+      if (response.ok) {
         onSuccess?.();
       } else {
-        r.json()
+        response
+          .json()
           .then((data) => {
             const failureResponse: PostSendEmailsResponse = {
               emails: data.emails,
@@ -38,8 +39,8 @@ export const postSendEmails = (
           });
       }
     })
-    .catch((e: any) => {
-      console.log("[postSendEmails] Unexpected response: ", e);
+    .catch((reason: any) => {
+      console.log("[postSendEmails] Unexpected response: ", reason);
       onFailure?.();
     });
 };
