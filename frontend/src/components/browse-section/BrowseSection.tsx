@@ -22,6 +22,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [fileStates, setFileStates] = useState<FileState[]>([]);
   // The message shown in the alert
   const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
+  // When active only the unique emails will be sent to the api
+  const [removeDuplicates, setRemoveDuplicates] = useState<boolean>(false);
 
   // The data that is to be sent to the api is held in a ref since it's not rendered anywhere
   // Held as an array of arrays, each array representing a file. This way it's easy to remove files
@@ -118,6 +120,10 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     [loadEmails, setFileStates]
   );
 
+  const handleDuplicatesCheckbox = useCallback(() => {
+    setRemoveDuplicates((prev) => !prev);
+  }, []);
+
   const onFilePreviewItemClick = (indexToRemove: number) => {
     const removeIndex = (_: any, index: number) => index !== indexToRemove;
 
@@ -163,8 +169,18 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       setIsDisabled(false);
     };
 
-    postSendEmails(candidatesEmails.current.flat(), onSuccess, onFailure);
-  }, []);
+    if (removeDuplicates) {
+      const uniqueEmailsSet: Set<string> = new Set(
+        candidatesEmails.current.flat()
+      );
+      const uniqueEmails: string[] = [];
+      uniqueEmailsSet.forEach((value) => uniqueEmails.push(value));
+
+      postSendEmails(uniqueEmails, onSuccess, onFailure);
+    } else {
+      postSendEmails(candidatesEmails.current.flat(), onSuccess, onFailure);
+    }
+  }, [removeDuplicates]);
 
   return (
     <div className="browse_section">
@@ -174,12 +190,26 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         inputValueRef={inputValueRef}
       />
       <FilesPreview files={fileStates} onItemClick={onFilePreviewItemClick} />
-      <Button
-        onClick={handleSubmit}
-        isDisabled={isSendDisabled}
-        isLoading={isSendButtonLoading}
-        title={"Send"}
-      />
+      <div className="browse_section_send_container">
+        <form className="browse_section_duplicates">
+          <input
+            type={"checkbox"}
+            id={"duplicates"}
+            className={"duplicates_checkbox"}
+            onChange={handleDuplicatesCheckbox}
+            checked={removeDuplicates}
+          />
+          <label htmlFor={"duplicates"} className={"duplicates_label"}>
+            {"Remove duplicates"}
+          </label>
+        </form>
+        <Button
+          onClick={handleSubmit}
+          isDisabled={isSendDisabled}
+          isLoading={isSendButtonLoading}
+          title={"Send"}
+        />
+      </div>
       {alertMessage && (
         <Alert
           message={alertMessage.message}
