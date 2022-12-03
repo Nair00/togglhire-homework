@@ -24,13 +24,15 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
 
   // The data that is to be sent to the api is held in a ref since it's not rendered anywhere
-  const candidatesEmails = useRef<string[]>([]);
+  // Held as an array of arrays, each array representing a file. This way it's easy to remove files
+  const candidatesEmails = useRef<string[][]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const inputValueRef = useRef<string>();
+  const inputValueRef = useRef<string>("");
 
   // Disables send button
-  const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
+  const isSendDisabled =
+    isDisabled || candidatesEmails.current?.flat().length === 0;
 
   // Closes the alert on click
   const closeAlert = () => {
@@ -55,7 +57,6 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
   // Cleans all data about the current form
   const cleanForm = () => {
-    inputValueRef.current = "";
     candidatesEmails.current = [];
     setFileStates([]);
   };
@@ -69,9 +70,11 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       readFiles(files)
         .then((response) => {
           response.forEach((data) => {
+            const newEmails: string[] = [];
             data.split(/\r?\n/).forEach((line) => {
-              line.trim().length > 0 && candidatesEmails.current.push(line);
+              line.trim().length > 0 && newEmails.push(line);
             });
+            candidatesEmails.current.push(newEmails);
           });
         })
         .catch(() => {
@@ -92,6 +95,10 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     (uploadedFiles: FileList) => {
       setIsDisabled(true);
 
+      // This is required to keep the value of the input empty, so when files are removed
+      // they can be added again without the input blocking them
+      inputValueRef.current = "";
+
       const files = [];
       for (let i = 0; i < (uploadedFiles.length ?? 0); i++) {
         files.push(uploadedFiles[i]);
@@ -105,6 +112,16 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     },
     [loadEmails, setFileStates]
   );
+
+  const onFilePreviewItemClick = (indexToRemove: number) => {
+    const removeIndex = (_: any, index: number) => index !== indexToRemove;
+
+    // Updates the value
+    candidatesEmails.current = candidatesEmails.current.filter(removeIndex);
+    setFileStates((prev) => {
+      return prev.filter(removeIndex);
+    });
+  };
 
   // Sends the email addresses
   const handleSubmit = useCallback(() => {
@@ -141,13 +158,17 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       setIsDisabled(false);
     };
 
-    postSendEmails(candidatesEmails.current, onSuccess, onFailure);
+    postSendEmails(candidatesEmails.current.flat(), onSuccess, onFailure);
   }, []);
 
   return (
     <div className="browse_section">
-      <DragAndDrop handleFiles={handleInputChange} refOverride={inputRef} />
-      <FilesPreview files={fileStates} />
+      <DragAndDrop
+        handleFiles={handleInputChange}
+        refOverride={inputRef}
+        inputValueRef={inputValueRef}
+      />
+      <FilesPreview files={fileStates} onItemClick={onFilePreviewItemClick} />
       <Button
         onClick={handleSubmit}
         isDisabled={isSendDisabled}

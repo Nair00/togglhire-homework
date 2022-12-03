@@ -12,11 +12,13 @@ interface DragAndDropProps {
    * Eg: clearing input
    */
   refOverride?: React.RefObject<HTMLInputElement>;
+  inputValueRef?: React.MutableRefObject<string>;
 }
 
 const DragAndDrop: React.FC<DragAndDropProps> = ({
   handleFiles,
   refOverride,
+  inputValueRef,
 }) => {
   const [dragActive, setDragActive] = React.useState(false);
 
@@ -69,6 +71,7 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({
         className={"drag_and_drop_input"}
         multiple={true}
         onChange={handleChange}
+        value={inputValueRef?.current}
       />
       <label
         className={"drag_and_drop_label"}
@@ -76,7 +79,7 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({
         id={dragActive ? "drag-active" : ""}
       >
         <div>
-          <p>{"Drag and drop your file here or"}</p>
+          <p>{"Drag and drop your files here or"}</p>
           <Button onClick={onButtonClick} title={"Upload a file"} />
         </div>
       </label>
