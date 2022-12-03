@@ -9,6 +9,7 @@
   font-size: 20px;
   font-weight: 400;
   transition: all 0.1s ease-out;
+  position: relative;
 }
 
 .button_active {
@@ -27,4 +28,34 @@
 .button_active:active {
   transform: scale(0.95);
   background-color: var(--color-hover);
+}
+
+.button_loading {
+  padding-right: 24px;
+}
+
+.button_loading::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: 0;
+  /* left: 0; */
+  right: 4px;
+  bottom: 0;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: var(--color-text);
+  border-radius: 50%;
+  animation: button-loading-spinner 1s ease infinite;
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: rotate(0turn);
+  }
+
+  to {
+    transform: rotate(1turn);
+  }
 }

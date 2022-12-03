@@ -34,6 +34,9 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const isSendDisabled =
     isDisabled || candidatesEmails.current?.flat().length === 0;
 
+  const isSendButtonLoading =
+    isDisabled && candidatesEmails.current?.flat().length > 0;
+
   // Closes the alert on click
   const closeAlert = () => {
     setAlertMessage(null);
@@ -172,6 +175,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       <Button
         onClick={handleSubmit}
         isDisabled={isSendDisabled}
+        isLoading={isSendButtonLoading}
         title={"Send"}
       />
       {alertMessage && (
