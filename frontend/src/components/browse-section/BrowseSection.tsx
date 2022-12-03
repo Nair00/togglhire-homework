@@ -113,6 +113,9 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
   // Sends the email addresses
   const handleSubmit = useCallback(() => {
+    // Blocks the buttons while waiting for a response
+    setIsDisabled(true);
+
     // On success alerts the user and also cleans the form
     const onSuccess = () => {
       setAlertMessage({
@@ -120,11 +123,12 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         type: "success",
       });
       cleanForm();
+
+      setIsDisabled(false);
     };
 
     // On failure alerts the user with a failure alert
     const onFailure = (response?: PostSendEmailsResponse) => {
-      console.log(response);
       const message = response?.emails
         ? response?.error === "send_failure"
           ? "Failed to send emails to the following addresses: " +
@@ -138,6 +142,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         message: message,
         type: "error",
       });
+
+      setIsDisabled(false);
     };
 
     postSendEmails(candidatesEmails.current, onSuccess, onFailure);
