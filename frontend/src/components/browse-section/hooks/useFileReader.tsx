@@ -42,9 +42,9 @@ export const useFileReader = ({
       files.map((file: File, index: number) => {
         const fileContents = handleFile(file, index)
           .then((contents) => contents)
-          .catch((e) => {
+          .catch((error) => {
             // If a file fails to be processed it will return an empty string
-            console.log("[FileReader error]", e);
+            console.log("[FileReader error]", error);
             return "";
           });
         return fileContents;
