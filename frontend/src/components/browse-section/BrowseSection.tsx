@@ -3,18 +3,31 @@ import { useState } from "react";
 import { Button } from "./components/button/Button";
 import { useFileReader } from "./hooks/useFileReader";
 import FilesPreview from "./components/files-preview/FilesPreview";
-import { FileState } from "src/types";
+import { AlertMessage, FileState } from "src/types";
 import "./BrowseSection.css";
 import { postSendEmails } from "src/api";
+import Alert from "../alert/Alert";
 
 interface BrowseSectionProps {}
 
 const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [fileStates, setFileStates] = useState<FileState[]>([]);
+  const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputValueRef = useRef<string>();
   const candidatesEmails = useRef<string[]>([]);
+
+  const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
+
+  const closeAlert = () => {
+    setAlertMessage(null);
+  };
+
+  const onBrowseClick = () => {
+    inputRef.current?.click();
+  };
 
   const onFileReadFailure = (index: number) => {
     setFileStates((prev) => {
@@ -31,6 +44,12 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   };
 
   const { readFiles } = useFileReader({ onFileReadSuccess, onFileReadFailure });
+
+  const cleanForm = () => {
+    inputValueRef.current = "";
+    candidatesEmails.current = [];
+    setFileStates([]);
+  };
 
   const loadEmails = useCallback(
     (files: File[]) => {
@@ -56,7 +75,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     [readFiles]
   );
 
-  const handleBrowseClick: React.ChangeEventHandler<HTMLInputElement> =
+  const handleInputClick: React.ChangeEventHandler<HTMLInputElement> =
     useCallback(
       (event) => {
         if (event.target.files) {
@@ -80,15 +99,27 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const handleSubmit = useCallback(() => {
     postSendEmails(candidatesEmails.current)
       .then(async (r: Response) => {
-        const isJson = r.headers
-          .get("content-type")
-          ?.includes("application/json");
-        if (isJson) {
-          r.json().then((data) => {
-            console.log("S", data);
+        if (r.ok) {
+          setAlertMessage({
+            message: "All emails have been sent!",
+            type: "success",
           });
+          cleanForm();
         } else {
-          console.log("error", r);
+          r.json().then((data) => {
+            const message =
+              data.error === "send_failure"
+                ? "Failed to send emails to the following addresses: " +
+                  data.emails
+                : (data.error = "invalid_email_address"
+                    ? "Some of the emails were not valid: " + data.emails
+                    : "Something went wrong!");
+
+            setAlertMessage({
+              message: message,
+              type: "error",
+            });
+          });
         }
       })
       .catch((e: any) => {
@@ -96,14 +127,10 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       });
   }, []);
 
-  const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
-
   return (
     <div className="BrowseSection">
       <Button
-        onClick={() => {
-          inputRef.current?.click();
-        }}
+        onClick={onBrowseClick}
         isDisabled={isDisabled}
         title={"Select Files"}
       />
@@ -113,9 +140,10 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         type="file"
         multiple
         accept={"text/txt"}
-        onChange={handleBrowseClick}
+        onChange={handleInputClick}
         className="browse_files_input"
         disabled={isDisabled}
+        value={inputValueRef.current}
       />
       <FilesPreview files={fileStates} />
       <Button
@@ -123,6 +151,13 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         isDisabled={isSendDisabled}
         title={"Send"}
       />
+      {alertMessage && (
+        <Alert
+          message={alertMessage.message}
+          type={alertMessage.type}
+          onClick={closeAlert}
+        />
+      )}
     </div>
   );
 };
