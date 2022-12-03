@@ -120,10 +120,12 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     [loadEmails, setFileStates]
   );
 
+  // Checks/Unchecks the duplicates box
   const handleDuplicatesCheckbox = useCallback(() => {
     setRemoveDuplicates((prev) => !prev);
   }, []);
 
+  // Removes the file with the given index from the loaded files
   const onFilePreviewItemClick = (indexToRemove: number) => {
     const removeIndex = (_: any, index: number) => index !== indexToRemove;
 
