@@ -8,6 +8,7 @@ import "./BrowseSection.css";
 import { postSendEmails } from "src/api";
 import Alert from "../alert/Alert";
 import { PostSendEmailsResponse } from "src/api/api.types";
+import DragAndDrop from "./drag-and-drop/DragAndDrop";
 
 interface BrowseSectionProps {}
 
@@ -34,11 +35,6 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   // Closes the alert on click
   const closeAlert = () => {
     setAlertMessage(null);
-  };
-
-  // Ties the click of the Browse button to the hidden input element
-  const onBrowseClick = () => {
-    inputRef.current?.click();
   };
 
   const onFileReadFailure = (index: number) => {
@@ -92,26 +88,23 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   );
 
   // Disables buttons while loading the new files, every time the input value changes
-  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> =
-    useCallback(
-      (event) => {
-        if (event.target.files) {
-          setIsDisabled(true);
+  const handleInputChange = useCallback(
+    (uploadedFiles: FileList) => {
+      setIsDisabled(true);
 
-          const files = [];
-          for (let i = 0; i < (event.target.files.length ?? 0); i++) {
-            files.push(event.target.files[i]);
-          }
-          loadEmails(files);
-          setFileStates(
-            files.map((file) => {
-              return { name: file.name, state: "loading" };
-            })
-          );
-        }
-      },
-      [loadEmails, setFileStates]
-    );
+      const files = [];
+      for (let i = 0; i < (uploadedFiles.length ?? 0); i++) {
+        files.push(uploadedFiles[i]);
+      }
+      loadEmails(files);
+      setFileStates(
+        files.map((file) => {
+          return { name: file.name, state: "loading" };
+        })
+      );
+    },
+    [loadEmails, setFileStates]
+  );
 
   // Sends the email addresses
   const handleSubmit = useCallback(() => {
@@ -153,22 +146,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
   return (
     <div className="browse_section">
-      <Button
-        onClick={onBrowseClick}
-        isDisabled={isDisabled}
-        title={"Select Files"}
-      />
-      <input
-        ref={inputRef}
-        id="files"
-        type="file"
-        multiple
-        accept={"text/txt"}
-        onChange={handleInputChange}
-        className="browse_section_files_input"
-        disabled={isDisabled}
-        value={inputValueRef.current}
-      />
+      <DragAndDrop handleFiles={handleInputChange} refOverride={inputRef} />
       <FilesPreview files={fileStates} />
       <Button
         onClick={handleSubmit}
