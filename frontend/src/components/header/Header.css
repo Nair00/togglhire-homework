@@ -1,0 +1,11 @@
+.header {
+  flex: 1;
+  padding-top: 8rem;
+  padding-bottom: 8rem;
+}
+
+.header_text {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 23px;
+}

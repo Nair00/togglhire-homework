@@ -1,0 +1,31 @@
+.alert_box {
+  position: fixed;
+  bottom: 20px;
+  width: 60%;
+  height: fit-content;
+  border-radius: 8px;
+  padding: 12px;
+  justify-content: center;
+  text-align: left;
+  transition: all 0.1s ease-out;
+}
+
+@media (max-width: 600px) {
+  .alert_box {
+    width: auto;
+    left: 20px;
+    right: 20px;
+  }
+}
+
+.alert_box_green {
+  background-color: var(--color-success);
+}
+
+.alert_box_red {
+  background-color: var(--color-failure);
+}
+
+.alert_box:active {
+  transform: scale(0.98);
+}
