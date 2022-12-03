@@ -11,7 +11,9 @@
 }
 
 .browse_section_duplicates {
+  display: flex;
   margin-right: 1rem;
+  flex: 1;
 }
 
 .duplicates_checkbox:not(:checked),
