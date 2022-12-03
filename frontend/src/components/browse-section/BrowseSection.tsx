@@ -11,21 +11,30 @@ import { PostSendEmailsResponse } from "src/api/api.types";
 
 interface BrowseSectionProps {}
 
+/**
+ * Section that handles the upload and submit of files
+ */
 const BrowseSection: React.FC<BrowseSectionProps> = () => {
+  // Used to disable buttons when in a loading state
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  // Used to show info about the uploaded files
   const [fileStates, setFileStates] = useState<FileState[]>([]);
+  // The message shown in the alert
   const [alertMessage, setAlertMessage] = useState<AlertMessage | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const inputValueRef = useRef<string>();
   const candidatesEmails = useRef<string[]>([]);
 
+  // Disables send button
   const isSendDisabled = isDisabled || candidatesEmails.current?.length === 0;
 
+  // Closes the alert on click
   const closeAlert = () => {
     setAlertMessage(null);
   };
 
+  // Ties the click of the Browse button to the hidden input element
   const onBrowseClick = () => {
     inputRef.current?.click();
   };
@@ -46,25 +55,26 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
   const { readFiles } = useFileReader({ onFileReadSuccess, onFileReadFailure });
 
+  // Cleans all data about the current form
   const cleanForm = () => {
     inputValueRef.current = "";
     candidatesEmails.current = [];
     setFileStates([]);
   };
 
+  // Receives an array of files and loads the emails in their specific array
   const loadEmails = useCallback(
     (files: File[]) => {
+      // Clears the array
       candidatesEmails.current = [];
-      const newEmails: string[] = [];
 
       readFiles(files)
         .then((response) => {
           response.forEach((data) => {
             data.split(/\r?\n/).forEach((line) => {
-              line.trim().length > 0 && newEmails.push(line);
+              line.trim().length > 0 && candidatesEmails.current.push(line);
             });
           });
-          candidatesEmails.current.push(...newEmails);
         })
         .catch(() => {
           setAlertMessage({
@@ -79,7 +89,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
     [readFiles]
   );
 
-  const handleInputClick: React.ChangeEventHandler<HTMLInputElement> =
+  // Disables buttons while loading the new files, every time the input value changes
+  const handleInputChange: React.ChangeEventHandler<HTMLInputElement> =
     useCallback(
       (event) => {
         if (event.target.files) {
@@ -100,7 +111,9 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       [loadEmails, setFileStates]
     );
 
+  // Sends the email addresses
   const handleSubmit = useCallback(() => {
+    // On success alerts the user and also cleans the form
     const onSuccess = () => {
       setAlertMessage({
         message: "All emails have been sent!",
@@ -109,6 +122,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
       cleanForm();
     };
 
+    // On failure alerts the user with a failure alert
     const onFailure = (response?: PostSendEmailsResponse) => {
       const message =
         response?.error === "send_failure"
@@ -128,7 +142,7 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   }, []);
 
   return (
-    <div className="BrowseSection">
+    <div className="browse_section">
       <Button
         onClick={onBrowseClick}
         isDisabled={isDisabled}
@@ -140,8 +154,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
         type="file"
         multiple
         accept={"text/txt"}
-        onChange={handleInputClick}
-        className="browse_files_input"
+        onChange={handleInputChange}
+        className="browse_section_files_input"
         disabled={isDisabled}
         value={inputValueRef.current}
       />

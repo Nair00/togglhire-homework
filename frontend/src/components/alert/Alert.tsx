@@ -3,8 +3,19 @@ import { AlertType } from "src/types";
 import "./Alert.css";
 
 interface AlertProps {
+  /**
+   * Message to be shown
+   */
   message: string;
+  /**
+   * Action when clicked
+   * Eg: close the alert
+   */
   onClick: () => void;
+  /**
+   * Changes the style of the alert. Can be 'success' or 'error'
+   * @default success
+   */
   type?: AlertType;
 }
 

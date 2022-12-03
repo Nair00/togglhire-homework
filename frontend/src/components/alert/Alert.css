@@ -18,11 +18,11 @@
 }
 
 .alert_box_green {
-  background-color: #adff2f;
+  background-color: var(--color-success);
 }
 
 .alert_box_red {
-  background-color: #dc143c;
+  background-color: var(--color-failure);
 }
 
 .alert_box:active {

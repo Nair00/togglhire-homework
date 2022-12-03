@@ -3,6 +3,9 @@ import { FileState } from "src/types";
 import "./FilesPreview.css";
 
 interface FilesPreviewProps {
+  /**
+   * Array containing the states of each file (name and loadingState)
+   */
   files: FileState[];
 }
 

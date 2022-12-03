@@ -1,6 +1,13 @@
 import { PostSendEmailsPayload, PostSendEmailsResponse } from "./api.types";
 import { postRequest } from "./apiRequest";
 
+/**
+ * Sends an email to each address listed in emails
+ * @param emails the array of emails
+ * @param onSuccess called on success
+ * @param onFailure called when an error occurs. Receives params when the errors
+ * are handled
+ */
 export const postSendEmails = (
   emails: string[],
   onSuccess?: () => void,
