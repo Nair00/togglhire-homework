@@ -124,13 +124,15 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
 
     // On failure alerts the user with a failure alert
     const onFailure = (response?: PostSendEmailsResponse) => {
-      const message =
-        response?.error === "send_failure"
+      console.log(response);
+      const message = response?.emails
+        ? response?.error === "send_failure"
           ? "Failed to send emails to the following addresses: " +
-            response?.emails
+            response.emails.join(", ")
           : response?.error === "invalid_email_address"
-          ? "Some of the emails were not valid: " + response?.emails
-          : "Something went wrong!";
+          ? "Some of the emails were not valid: " + response.emails.join(", ")
+          : "Something went wrong!"
+        : "Something went wrong!";
 
       setAlertMessage({
         message: message,

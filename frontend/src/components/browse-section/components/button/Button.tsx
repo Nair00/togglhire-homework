@@ -29,7 +29,7 @@ export const Button: React.FC<PropsWithChildren<ButtonProps>> = ({
       onClick={!isDisabled ? onClick : undefined}
       className={`button ${isDisabled ? "button_disabled" : "button_active"}`}
     >
-      <p className={"p_default_text"}>{title}</p>
+      {title}
     </button>
   );
 };
