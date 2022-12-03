@@ -14,6 +14,7 @@ li.files_preview_item {
   color: var(--color-white);
   background-color: #aaaaaa80;
   margin: 2px;
+  cursor: pointer;
 }
 
 li.files_preview_item#success {
