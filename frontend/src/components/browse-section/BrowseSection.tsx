@@ -34,6 +34,8 @@ const BrowseSection: React.FC<BrowseSectionProps> = () => {
   const isSendDisabled =
     isDisabled || candidatesEmails.current?.flat().length === 0;
 
+  // The send button is disabled when there are no emails loaded
+  // If the button is disabled with emails loaded, it means that it's in a 'loading' state
   const isSendButtonLoading =
     isDisabled && candidatesEmails.current?.flat().length > 0;
 
